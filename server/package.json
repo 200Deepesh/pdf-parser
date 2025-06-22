@@ -16,6 +16,10 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "nlcst-to-string": "^4.0.0",
+    "retext": "^9.0.0",
+    "retext-keywords": "^8.0.2",
+    "retext-pos": "^5.0.0"
   }
 }
