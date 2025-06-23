@@ -25,9 +25,7 @@ export const extractRepeatedKeywordFromText = async (text) => {
     if (file.data.keywords) {
         
         const keywords = file.data.keywords.map((keyword) => {
-            for (const matche of keyword.matches) {
-                console.log(keyword.matches.indexOf(matche), matche.node.children[0].value);
-            }
+            console.log(keyword.matches.length, keyword.matches[0].node.children[0].value);
             return toString(keyword.matches[0].node);
         });
         return keywords;
