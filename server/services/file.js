@@ -13,6 +13,7 @@ export const pdfToText = async (path) => {
             .catch((err) => {
                 console.log(err);
             });
+
         return textContent;
     } catch (err) {
         console.log("Error in pdfToText function: \n", err.message);

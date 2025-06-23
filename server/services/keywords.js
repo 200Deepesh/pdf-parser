@@ -4,7 +4,7 @@ export const extractAllKeywordFromText = (text) => {
     const keyWords = keyword_extractor.extract(text, {
         language: "english",
         remove_digits: true,
-        return_changed_case: true,
+        return_changed_case: false,
         remove_duplicates: true,
     });
 
@@ -19,13 +19,11 @@ import { toString } from "nlcst-to-string"
 export const extractRepeatedKeywordFromText = async (text) => {
     const file = await retext()
         .use(retextPos)
-        .use(retextKeywords)
+        .use(retextKeywords, {maximum: text.split(" ").length})
         .process(text);
 
     if (file.data.keywords) {
-        
         const keywords = file.data.keywords.map((keyword) => {
-            console.log(keyword.matches.length, keyword.matches[0].node.children[0].value);
             return toString(keyword.matches[0].node);
         });
         return keywords;

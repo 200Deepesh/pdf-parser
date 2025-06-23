@@ -1,38 +1,44 @@
 import express from "express";
 import cors from "cors";
+import multer from "multer";
 import { extractAllKeywordFromText } from "./services/keywords.js";
-import { extractRepeatedKeywordFromText } from "./services/keywords.js";
 import { pdfToText } from "./services/file.js";
+import { unlinkSync } from "fs";
 
 const app = express();
 const port = 8000;
 
+app.set("view engine", "ejs");
+app.set("views", "./views");
+
 app.use(cors());
 app.use(express.urlencoded());
 
-app.get('/', async (req, res) => {
-    if(req.query.file) {
-        const path = `./uploads/${req.query.file}`;
-        const text = await pdfToText(path);
-        const keyWords = extractAllKeywordFromText(text);
-        // const keyWords = await extractRepeatedKeywordFromText(text);
-        return res.json({ keyWords: keyWords });
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./uploads");
+    },
+    filename: (req, file, cb) => {
+        const name = Date.now() + '-' + file.originalname;
+        cb(null, name);
     }
-    
-    return res.send('Welcome to pdf parser');
 });
 
-app.post('/all', async (req, res) => {
-    const text = req.body.text;
-    const keyWords = extractAllKeywordFromText(text);
-    return res.json({ keyWords: keyWords });
-})
+const uploads = multer({ storage: storage });
 
-app.post('/repeated', async (req, res) => {
-    const text = req.body.text;
-    const keyWords = await extractRepeatedKeywordFromText(text);
-    return res.json({ keyWords: keyWords });
-})
+app.get('/', async (req, res) => {
+    return res.render('home');
+});
+
+app.post('/', uploads.single('file'), async (req, res) => {
+    if (req.file) {
+        const path = `./uploads/${req.file.filename}`;
+        const text = await pdfToText(path);
+        const keyWords = extractAllKeywordFromText(text);
+        unlinkSync(path);
+        return res.render('home', { keywords: keyWords });
+    }
+});
 
 app.listen(port, (err) => {
     console.log(`server is listening to port ${port}`);
