@@ -1,14 +1,20 @@
 import keyword_extractor from "keyword-extractor";
 
 export const extractAllKeywordFromText = (text) => {
-    const keyWords = keyword_extractor.extract(text, {
-        language: "english",
-        remove_digits: true,
-        return_changed_case: false,
-        remove_duplicates: true,
-    });
-
-    return keyWords;
+    try{
+        const keyWords = keyword_extractor.extract(text, {
+            language: "english",
+            remove_digits: true,
+            return_changed_case: false,
+            remove_duplicates: true,
+        });
+    
+        return keyWords;
+    }
+    catch(err){
+        console.error('error in "extractAllKeywordFromText()" function in keywords.js file (server/services/keyword.js): \n', err.message);
+        return false;
+    }
 }
 
 import { retext } from "retext";

@@ -19,24 +19,57 @@ const storage = multer.diskStorage({
         cb(null, "./uploads");
     },
     filename: (req, file, cb) => {
+        console.log(file);
         const name = Date.now() + '-' + file.originalname;
         cb(null, name);
-    }
+    },
 });
 
-const uploads = multer({ storage: storage });
+const uploads = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        if (file.originalname.endsWith('.pdf')) {
+            return cb(null, true);
+        }
+        else {
+            return cb( new Error('invalid file extention, expecting pdf files only'));
+        }
+    }
+}).single('file');
 
 app.get('/', async (req, res) => {
     return res.render('home');
 });
 
-app.post('/', uploads.single('file'), async (req, res) => {
+app.post('/', (req, res, next) => {
+    uploads(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            console.error('error from "multer" in index.js file (/server/index.js):\n', err.message);
+            return res.status(500).send('got error in multer while save the file');
+        } else if (err) {
+            console.error('error while saving the input file in index.js file (/server/index.js):\n', err.message);
+            return res.status(400).send(err.message);
+        }
+        return next();
+    })
+}, async (req, res) => {
     if (req.file) {
         const path = `./uploads/${req.file.filename}`;
         const text = await pdfToText(path);
+        if (!text) {
+            unlinkSync(path);
+            return res.status(500).send('server is unable to extract text content from the file');
+        }
         const keyWords = extractAllKeywordFromText(text);
+        if(!keyWords) {
+            unlinkSync(path);
+            return res.status(500).send('server is unable to extract keywords from the text content of the file');
+        }
         unlinkSync(path);
         return res.render('home', { keywords: keyWords });
+    }
+    else {
+        return res.status(400).send('file is missing in request object\nreq.file:', req.file);
     }
 });
 
