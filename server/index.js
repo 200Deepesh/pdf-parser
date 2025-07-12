@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import multer from "multer";
-import { extractAllKeywordFromText } from "./services/keywords.js";
+import { extractAllKeywordFromText, extractRepeatedKeywordFromText } from "./services/keywords.js";
 import { pdfToText } from "./services/file.js";
 import { unlinkSync } from "fs";
 
@@ -60,7 +60,7 @@ app.post('/', (req, res, next) => {
             unlinkSync(path);
             return res.status(500).send('server is unable to extract text content from the file');
         }
-        const keyWords = extractAllKeywordFromText(text);
+        const keyWords = await extractAllKeywordFromText(text);
         if(!keyWords) {
             unlinkSync(path);
             return res.status(500).send('server is unable to extract keywords from the text content of the file');
